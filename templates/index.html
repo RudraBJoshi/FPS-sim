@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPS GIPS Interactive Simulation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .step { display: none; margin-top: 20px; }
+        .step.active { display: block; }
+        button { margin-top: 10px; }
+        .container { display: flex; }
+        .scenario { margin-left: 20px; }
+    </style>
+    <script>
+        let challenges = [];
+        let underlyingProblem = '';
+        let criteria = [];
+        let solutions = [];
+        let rankingResults = [];
+        let scenarioText = '';
+
+        function startSimulation() {
+            scenarioText = document.getElementById('scenario').value;
+            if (!scenarioText) {
+                alert("Please enter a scenario.");
+                return;
+            }
+
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+            document.getElementById('displayScenario').innerText = scenarioText; // Display scenario
+        }
+
+        function submitChallenges() {
+            challenges = new Array(16).fill('');
+            const challengeList = document.getElementById('challengeList');
+            for (let i = 0; i < 16; i++) {
+                challenges[i] = document.getElementById(`challenge${i}`).value;
+            }
+
+            // Populate the dropdown menu with challenges
+            const problemChoice = document.getElementById('problemChoice');
+            problemChoice.innerHTML = ''; // Clear previous options
+            challenges.forEach((challenge, index) => {
+                const option = document.createElement('option');
+                option.value = index + 1; // options will be indexed from 1 to 16
+                option.textContent = challenge;
+                problemChoice.appendChild(option);
+            });
+
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step3').classList.add('active');
+        }
+
+        function selectUnderlyingProblem() {
+            const problemChoice = document.getElementById('problemChoice').value;
+            if (!problemChoice || problemChoice < 1 || problemChoice > 16) {
+                alert("Please select a valid challenge number.");
+                return;
+            }
+            underlyingProblem = challenges[problemChoice - 1];
+
+            const formattedProblem = document.getElementById('formattedProblem').value;
+            if (!formattedProblem) {
+                alert("Please rephrase your underlying problem.");
+                return;
+            }
+
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('step4').classList.add('active');
+        }
+
+        function proceedToStep5() {
+            const criteriaInputs = Array.from(document.querySelectorAll('.criteria'));
+            criteria = criteriaInputs.map(input => input.value);
+
+            document.getElementById('step4').classList.remove('active');
+            document.getElementById('step5').classList.add('active');
+
+            document.getElementById('criteriaDisplay').innerHTML = criteria.map((criterion, idx) => 
+                `<div>${idx + 1}. ${criterion}</div>`
+            ).join('');
+        }
+
+        function submitSolutions() {
+            solutions = [
+                document.getElementById('solution1').value,
+                document.getElementById('solution2').value,
+                document.getElementById('solution3').value,
+                document.getElementById('solution4').value,
+                document.getElementById('solution5').value,
+                document.getElementById('solution6').value,
+                document.getElementById('solution7').value,
+                document.getElementById('solution8').value,
+                document.getElementById('solution9').value,
+                document.getElementById('solution10').value,
+                document.getElementById('solution11').value,
+                document.getElementById('solution12').value,
+                document.getElementById('solution13').value,
+                document.getElementById('solution14').value,
+                document.getElementById('solution15').value,
+                document.getElementById('solution16').value,
+            ];
+
+            document.getElementById('step5').classList.remove('active');
+            document.getElementById('step6').classList.add('active');
+
+            const solutionSelection = document.getElementById('solutionSelection');
+            solutionSelection.innerHTML = ''; // Clear previous selections
+            solutions.forEach((solution, index) => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `solutionSelect${index}`;
+                checkbox.value = solution;
+
+                const label = document.createElement('label');
+                label.htmlFor = `solutionSelect${index}`;
+                label.textContent = solution;
+
+                solutionSelection.appendChild(checkbox);
+                solutionSelection.appendChild(label);
+                solutionSelection.appendChild(document.createElement('br'));
+            });
+        }
+
+        function selectSolutionsToRate() {
+            const selectedSolutions = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
+            if (selectedSolutions.length !== 8) {
+                alert("Please select exactly 8 solutions to rate.");
+                return;
+            }
+
+            document.getElementById('step6').classList.remove('active');
+            document.getElementById('step7').classList.add('active');
+        }
+
+        function rankSolutions() {
+            const scores = {};
+            const solutionRankings = {};
+
+            criteria.forEach((criterion, criterionIndex) => {
+                const criterionScores = {};
+                solutions.forEach((solution) => {
+                    const score = parseInt(prompt(`Rate "${solution}" based on "${criterion}" (1-10):`));
+                    criterionScores[solution] = score;
+                });
+
+                // Rank solutions based on scores for this criterion
+                const rankedSolutions = Object.entries(criterionScores).sort((a, b) => b[1] - a[1]);
+                solutionRankings[criterionIndex] = rankedSolutions;
+            });
+
+            rankingResults = solutionRankings;
+
+            document.getElementById('step7').classList.remove('active');
+            document.getElementById('step8').classList.add('active');
+
+            const rankingDisplay = document.getElementById('rankingDisplay');
+            rankingDisplay.innerHTML = criteria.map((criterion, idx) => {
+                return `<h4>${criterion}</h4><div>${rankingResults[idx].map(([solution, score]) => 
+                    `${solution} - Score: ${score}`
+                ).join('<br>')}</div>`;
+            }).join('');
+        }
+
+        function developActionPlan() {
+            const actionPlan = document.getElementById('actionPlan').value;
+            document.getElementById('actionPlanDisplay').innerText = actionPlan;
+
+            document.getElementById('step8').classList.remove('active');
+            document.getElementById('summary').classList.add('active');
+        }
+    </script>
+</head>
+<body>
+    <h1>FPS GIPS Interactive Simulation</h1>
+
+    <div class="step active" id="step1">
+        <h2>Insert your Scenario</h2>
+        <input type="text" id="scenario" placeholder="Enter the scenario or problem to solve" required>
+        <button type="button" onclick="startSimulation()">Start Simulation</button>
+    </div>
+
+    <div class="container">
+        <div class="step" id="step2">
+            <h2>Step 2: Identify Challenges</h2>
+            <div id="challengeList">
+                <input type="text" id="challenge0" placeholder="Challenge 1" required><br>
+                <input type="text" id="challenge1" placeholder="Challenge 2" required><br>
+                <input type="text" id="challenge2" placeholder="Challenge 3" required><br>
+                <input type="text" id="challenge3" placeholder="Challenge 4" required><br>
+                <input type="text" id="challenge4" placeholder="Challenge 5" required><br>
+                <input type="text" id="challenge5" placeholder="Challenge 6" required><br>
+                <input type="text" id="challenge6" placeholder="Challenge 7" required><br>
+                <input type="text" id="challenge7" placeholder="Challenge 8" required><br>
+                <input type="text" id="challenge8" placeholder="Challenge 9" required><br>
+                <input type="text" id="challenge9" placeholder="Challenge 10" required><br>
+                <input type="text" id="challenge10" placeholder="Challenge 11" required><br>
+                <input type="text" id="challenge11" placeholder="Challenge 12" required><br>
+                <input type="text" id="challenge12" placeholder="Challenge 13" required><br>
+                <input type="text" id="challenge13" placeholder="Challenge 14" required><br>
+                <input type="text" id="challenge14" placeholder="Challenge 15" required><br>
+                <input type="text" id="challenge15" placeholder="Challenge 16" required><br>
+            </div>
+            <button type="button" onclick="submitChallenges()">Submit Challenges</button>
+        </div>
+
+        <div class="scenario">
+            <h2>Scenario Display</h2>
+            <p id="displayScenario"></p>
+        </div>
+    </div>
+
+    <div class="step" id="step3">
+        <h2>Step 3: Select an Underlying Problem</h2>
+        <div>
+            <label for="problemChoice">Select a challenge as your underlying problem:</label>
+            <select id="problemChoice" required>
+                <option value="">--Select Challenge--</option>
+            </select>
+            <textarea id="formattedProblem" placeholder="Rephrase your underlying problem here..." required></textarea><br>
+            <button type="button" onclick="selectUnderlyingProblem()">Submit Underlying Problem</button>
+        </div>
+    </div>
+
+    <div class="step" id="step4">
+        <h2>Step 4: Generate Criteria</h2>
+        <div>
+            <input type="text" class="criteria" placeholder="Criterion 1" required><br>
+            <input type="text" class="criteria" placeholder="Criterion 2" required><br>
+            <input type="text" class="criteria" placeholder="Criterion 3" required><br>
+        </div>
+        <button type="button" onclick="proceedToStep5()">Submit Criteria</button>
+    </div>
+
+    <div class="step" id="step5">
+        <h2>Step 5: Produce Solution Ideas</h2>
+        <div id="solutionInputs">
+            <input type="text" id="solution1" placeholder="Solution 1" required><br>
+            <input type="text" id="solution2" placeholder="Solution 2" required><br>
+            <input type="text" id="solution3" placeholder="Solution 3" required><br>
+            <input type="text" id="solution4" placeholder="Solution 4" required><br>
+            <input type="text" id="solution5" placeholder="Solution 5" required><br>
+            <input type="text" id="solution6" placeholder="Solution 6" required><br>
+            <input type="text" id="solution7" placeholder="Solution 7" required><br>
+            <input type="text" id="solution8" placeholder="Solution 8" required><br>
+            <input type="text" id="solution9" placeholder="Solution 9"><br>
+            <input type="text" id="solution10" placeholder="Solution 10"><br>
+            <input type="text" id="solution11" placeholder="Solution 11"><br>
+            <input type="text" id="solution12" placeholder="Solution 12"><br>
+            <input type="text" id="solution13" placeholder="Solution 13"><br>
+            <input type="text" id="solution14" placeholder="Solution 14"><br>
+            <input type="text" id="solution15" placeholder="Solution 15"><br>
+            <input type="text" id="solution16" placeholder="Solution 16"><br>
+        </div>
+        <button type="button" onclick="submitSolutions()">Submit Solutions</button>
+    </div>
+
+    <div class="step" id="step6">
+        <h2>Step 6: Select Solutions to Rate</h2>
+        <div id="solutionSelection"></div>
+        <button type="button" onclick="selectSolutionsToRate()">Proceed to Rate Solutions</button>
+    </div>
+
+    <div class="step" id="step7">
+        <h2>Step 7: Rate Solutions</h2>
+        <div id="criteriaDisplay"></div>
+        <button type="button" onclick="rankSolutions()">Rank Solutions</button>
+    </div>
+
+    <div class="step" id="step8">
+        <h2>Step 8: Develop an Action Plan</h2>
+        <textarea id="actionPlan" placeholder="Enter your action plan here..."></textarea><br>
+        <button type="button" onclick="developActionPlan()">Submit Action Plan</button>
+    </div>
+
+    <div class="step" id="summary">
+        <h2>Summary</h2>
+        <p id="actionPlanDisplay"></p>
+        <div id="rankingDisplay"></div>
+        <button type="button" onclick="document.getElementById('summary').classList.remove('active'); document.getElementById('step1').classList.add('active');">Restart Simulation</button>
+    </div>
+</body>
+</html>
